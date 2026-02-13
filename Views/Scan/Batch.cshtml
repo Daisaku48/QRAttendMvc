@@ -73,11 +73,11 @@
                         </div>
                         <div class="ev-login-row">
                             <span class="ev-login-label">日付</span>
-                            <span class="ev-login-value" id="layoutDate"></span>
+                            <span class="ev-login-value">@DateTime.Now.ToString("yyyy/MM/dd")</span>
                         </div>
                         <div class="ev-login-row">
                             <span class="ev-login-label">時刻</span>
-                            <span class="ev-login-value" id="layoutTimeSide"></span>
+                            <span class="ev-login-value">@DateTime.Now.ToString("HH:mm:ss")</span>
                         </div>
                     </div>
                 </div>
@@ -297,20 +297,12 @@
     function updateLayoutClock() {
         const d = new Date();
         const pad = (n) => String(n).padStart(2, "0");
-        const week = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
-        const w = week[d.getDay()];
-
-        const date = `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${w}`;
         const time = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
-        const elDate = document.getElementById("layoutDate");
-        if (elDate) elDate.textContent = date;
 
         const elTime = document.getElementById("layoutTime");
         if (elTime) elTime.textContent = time;
 
-        const elTimeSide = document.getElementById("layoutTimeSide");
-        if (elTimeSide) elTimeSide.textContent = time;
     }
 
     updateLayoutClock();
