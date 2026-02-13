@@ -12,14 +12,14 @@
     string FmtYmd(string? ymd)
     {
         if (string.IsNullOrWhiteSpace(ymd)) return "";
-        // DBの "yyyy/M/d" などの表記揺れをそのまま表示（設計書: yyyy/m/d）
         return ymd.Replace("-", "/");
     }
+
     string FmtHm(string? hhmm)
     {
         if (string.IsNullOrWhiteSpace(hhmm)) return "";
-        var s = hhmm.Trim().PadLeft(4,'0');
-        return s.Substring(0,2) + ":" + s.Substring(2,2);
+        var s = hhmm.Trim().PadLeft(4, '0');
+        return s.Substring(0, 2) + ":" + s.Substring(2, 2);
     }
 }
 
@@ -30,7 +30,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - 協力会社入退場記録システム</title>
 
-    @*<link rel="stylesheet" href="~/css/site.css" />*@
     <link rel="stylesheet" href="~/css/scan-result.css" />
     <link rel="stylesheet" href="~/css/entryexit-batch.css" />
 </head>
@@ -42,7 +41,6 @@
     </div>
 
     <div class="card ee-card">
-
         @if (string.IsNullOrEmpty(kaisaiCd) || ev == null)
         {
             <div class="alert alert-warning">
@@ -51,7 +49,6 @@
         }
         else
         {
-            <!-- イベント情報 -->
             <div class="ee-top">
                 <div class="ee-event">
                     <div class="ee-row"><div class="ee-k">イベント開催日</div><div class="ee-v">@FmtYmd(ev.KaisaiYmd)</div></div>
@@ -61,43 +58,32 @@
                     <div class="ee-row ee-row-inline">
                         <div class="ee-k">開催時刻</div>
                         <div class="ee-v">@($"{FmtHm(ev.StartTime)} ～ {FmtHm(ev.EndTime)}")</div>
-                        <div class="ee-k ee-k-small">受付開始時刻</div><div class="ee-v ee-v-small">@FmtHm(ev.ReceptTime)</div>
+                        <div class="ee-k ee-k-small">受付開始時刻</div>
+                        <div class="ee-v ee-v-small">@FmtHm(ev.ReceptTime)</div>
                         <div class="ee-now-label">現在時刻</div>
                         <div id="layoutTime" class="ee-now-time"></div>
-                        @*<div class="ee-now ee-row-inline">
-                            <div class="ee-now-label">現在時刻</div>
-                            <div id="clockBig" class="ee-now-time">@DateTime.Now.ToString("HH:mm:ss")</div>
-                        </div>*@
                     </div>
-                    @*<div class="ee-row"><div class="ee-k">開催コード</div><div class="ee-v">@ev.KaisaiCd</div></div>*@
-			    </div>
+                </div>
 
                 <div class="ee-side">
-                    <div class="ee-login">
-                        <div class="ev-loginbox" aria-label="ログイン情報">
-                            <div class="ev-login-row">
-                                <span class="ev-login-label">ログイン</span>
-                                <span class="ev-login-value">@login</span>
-                            </div>
+                    <div class="ee-login" aria-label="ログイン情報">
+                        <div class="ev-login-row">
+                            <span class="ev-login-label">ログイン</span>
+                            <span class="ev-login-value">@login</span>
                         </div>
                         <div class="ev-login-row">
-                            <div class="ev-login-label">日付</div>
-                            <div class="ev-login-value">
-                                <span id="layoutDate"></span>
-                            </div>
+                            <span class="ev-login-label">日付</span>
+                            <span class="ev-login-value" id="layoutDate"></span>
                         </div>
                         <div class="ev-login-row">
-                            <div class="ev-login-label">時刻</div>
-                            <div class="ev-login-value">
-                                @DateTime.Now.ToString("HH:mm:ss")
-                            </div>
+                            <span class="ev-login-label">時刻</span>
+                            <span class="ev-login-value" id="layoutTimeSide"></span>
                         </div>
                     </div>
                 </div>
             </div>
         }
 
-        <div class="ee-section-title"></div>
         <div class="ee-read">
             <div class="ee-icon-wrap">
                 <img id="resultIcon" class="result-icon" src="/images/Circle.png" alt="結果" style="visibility:hidden;" />
@@ -133,16 +119,16 @@
     </div>
 
 <script>
-    const input      = document.getElementById('scanInput');
-    const logArea    = document.getElementById('logArea');
-    const lastCode   = document.getElementById('lastCode');
-    const lastName   = document.getElementById('lastName');
-    const lastTime   = document.getElementById('lastTime');
-    const resultIcon = document.getElementById('resultIcon');
-    const btnRelease = document.getElementById('btnRelease');
+    const input = document.getElementById("scanInput");
+    const logArea = document.getElementById("logArea");
+    const lastCode = document.getElementById("lastCode");
+    const lastName = document.getElementById("lastName");
+    const lastTime = document.getElementById("lastTime");
+    const resultIcon = document.getElementById("resultIcon");
+    const btnRelease = document.getElementById("btnRelease");
 
-    const kind = '@kind'; // IN / OUT
-    let locked = false;  // ブザー中は読取不可
+    const kind = "@kind";
+    let locked = false;
     let buzzerCtx = null;
     let buzzerOsc = null;
     let buzzerGain = null;
@@ -153,22 +139,27 @@
     }
 
     function setIcon(result) {
-    // result: OK / WARN / NG
-    let src = "";
-    let alt = "";
-    if (result === "OK")   { src = "/images/Circle.png";   alt = "正常"; }
-    if (result === "WARN") { src = "/images/Triangle.png"; alt = "警告"; }
-    if (result === "NG")   { src = "/images/Cross.png";    alt = "エラー"; }
+        let src = "";
+        let alt = "";
 
-    resultIcon.src = src;
-    resultIcon.alt = alt;
-    resultIcon.style.visibility = "visible";
+        if (result === "OK") {
+            src = "/images/Circle.png";
+            alt = "正常";
+        } else if (result === "WARN") {
+            src = "/images/Triangle.png";
+            alt = "警告";
+        } else if (result === "NG") {
+            src = "/images/Cross.png";
+            alt = "エラー";
+        }
 
-    // アニメーションを毎回発火させる（class付け直し）
-    resultIcon.classList.remove("pop-animate");
-    void resultIcon.offsetWidth; // reflow
-    resultIcon.classList.add("pop-animate");
-}
+        resultIcon.src = src;
+        resultIcon.alt = alt;
+        resultIcon.style.visibility = "visible";
+        resultIcon.classList.remove("pop-animate");
+        void resultIcon.offsetWidth;
+        resultIcon.classList.add("pop-animate");
+    }
 
     function showReadResult(code, name, timeText) {
         lastCode.textContent = code || "－";
@@ -176,53 +167,50 @@
         lastTime.textContent = timeText || "";
     }
 
+    function playBeep(result) {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
 
-// 単発ビープ（アイコン表示と同期）
-function playBeep(result) {
-    try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            if (ctx.state === "suspended") ctx.resume();
 
-        // ブザーとは別コンテキストで単発音を出す（同期が安定）
-        const ctx = new AudioCtx();
-        if (ctx.state === "suspended") ctx.resume();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
 
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+            const freq = result === "OK" ? 880 : result === "WARN" ? 660 : 220;
+            osc.type = "sine";
+            osc.frequency.value = freq;
 
-        const freq = (result === "OK") ? 880 : (result === "WARN") ? 660 : 220; // OK/WARN/NG
-        osc.type = "sine";
-        osc.frequency.value = freq;
+            const t0 = ctx.currentTime;
+            gain.gain.setValueAtTime(0.0001, t0);
+            gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.12);
 
-        const t0 = ctx.currentTime;
-        gain.gain.setValueAtTime(0.0001, t0);
-        gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.12);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
 
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+            osc.start(t0);
+            osc.stop(t0 + 0.13);
+            osc.onended = () => {
+                try { ctx.close(); } catch (e) {}
+            };
+        } catch (e) {}
+    }
 
-        osc.start(t0);
-        osc.stop(t0 + 0.13);
-
-        osc.onended = () => { try { ctx.close(); } catch (e) {} };
-    } catch (e) {}
-}
-
-    // ブザー（解除まで鳴り続け）
     function startBuzzer() {
         try {
             const AudioCtx = window.AudioContext || window.webkitAudioContext;
             if (!AudioCtx) return;
             if (!buzzerCtx) buzzerCtx = new AudioCtx();
             if (buzzerCtx.state === "suspended") buzzerCtx.resume();
+            if (buzzerOsc) return;
 
-            if (buzzerOsc) return; // already running
             buzzerOsc = buzzerCtx.createOscillator();
             buzzerGain = buzzerCtx.createGain();
 
             buzzerOsc.type = "square";
-            buzzerOsc.frequency.value = 880; // ブザー音
+            buzzerOsc.frequency.value = 880;
             buzzerGain.gain.value = 0.08;
 
             buzzerOsc.connect(buzzerGain);
@@ -238,6 +226,7 @@ function playBeep(result) {
                 buzzerOsc.disconnect();
                 buzzerOsc = null;
             }
+
             if (buzzerGain) {
                 buzzerGain.disconnect();
                 buzzerGain = null;
@@ -261,35 +250,26 @@ function playBeep(result) {
         input.focus();
     }
 
-    btnRelease.addEventListener("click", () => {
-        unlockReading();
-    });
+    btnRelease.addEventListener("click", unlockReading);
+    window.addEventListener("load", () => input.focus());
 
-    // 初期フォーカス
-    window.addEventListener('load', () => input.focus());
-
-    // Enterで送信（スキャナ想定）
-    input.addEventListener('keydown', async function (e) {
-        if (e.key !== 'Enter') return;
+    input.addEventListener("keydown", async (e) => {
+        if (e.key !== "Enter") return;
 
         const code = (input.value || "").trim();
         input.value = "";
 
-        if (!code) return;
-
-        // ブザー中は読取不可（設計書）
-        if (locked) return;
+        if (!code || locked) return;
 
         const res = await fetch('@Url.Action("Record", "Scan")', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: code, kind: kind, kaisaiCd: '@kaisaiCd' })
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: code, kind: kind, kaisaiCd: "@kaisaiCd" })
         });
 
         const data = await res.json();
-        const t = data.time ? data.time.slice(0,2) + ":" + data.time.slice(2,4) : "";
+        const t = data.time ? data.time.slice(0, 2) + ":" + data.time.slice(2, 4) : "";
 
-        // 読取結果表示
         showReadResult(data.code || code, data.name || (data.result === "NG" ? data.message : "－"), t);
 
         if (data.result === "OK") {
@@ -304,41 +284,37 @@ function playBeep(result) {
             setIcon("WARN");
             playBeep("WARN");
             appendLog(`${data.code ?? code} ${data.name ?? ""} ${t} ${data.message}`);
-            lockReading(); // 解除まで停止
+            lockReading();
             return;
         }
 
-        // NG
         setIcon("NG");
         playBeep("NG");
         appendLog(`${data.code ?? code} ${t} ${data.message}`);
-        lockReading(); // 解除まで停止
+        lockReading();
     });
-                function updateLayoutClock() {
-                    const d = new Date();
-                    const pad = n => String(n).padStart(2, '0');
 
-                    const week = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
-                    const w = week[d.getDay()];
+    function updateLayoutClock() {
+        const d = new Date();
+        const pad = (n) => String(n).padStart(2, "0");
+        const week = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
+        const w = week[d.getDay()];
 
-                    const date =
-                        d.getFullYear() + "/" +
-                        pad(d.getMonth() + 1) + "/" +
-                        pad(d.getDate()) + " " + w;
+        const date = `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${w}`;
+        const time = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
-                    const time =
-                        pad(d.getHours()) + ":" +
-                        pad(d.getMinutes()) + ":" +
-                        pad(d.getSeconds());
+        const elDate = document.getElementById("layoutDate");
+        if (elDate) elDate.textContent = date;
 
-                    const elDate = document.getElementById("layoutDate");
-                    if (elDate) elDate.textContent = date;
+        const elTime = document.getElementById("layoutTime");
+        if (elTime) elTime.textContent = time;
 
-                    const elTime = document.getElementById("layoutTime");
-                    if (elTime) elTime.textContent = time;
-                }
-            updateLayoutClock();
-            setInterval(updateLayoutClock, 1000);
+        const elTimeSide = document.getElementById("layoutTimeSide");
+        if (elTimeSide) elTimeSide.textContent = time;
+    }
+
+    updateLayoutClock();
+    setInterval(updateLayoutClock, 1000);
 </script>
 </body>
 </html>
